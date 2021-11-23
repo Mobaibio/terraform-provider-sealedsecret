@@ -21,7 +21,6 @@ func TestGet(t *testing.T) {
 		Mock                    roundTripFunc
 		ExpectedResponse        string
 		ExpectedErr             string
-		ExpectedNumberOfRetries int
 	}{
 		{
 			Name: "happy day",
@@ -33,6 +32,7 @@ func TestGet(t *testing.T) {
 			}),
 			ExpectedResponse: "this_should_work",
 			ExpectedErr:      "",
+
 		},
 		{
 			Name: "retries logic is working",
@@ -41,20 +41,12 @@ func TestGet(t *testing.T) {
 			}),
 			ExpectedResponse:        "",
 			ExpectedErr:             "request to k8s cluster failed: Get \"http://localhost/api/v1/namespaces/controllerNs_aaa/services/http:controllerName_aaa:/proxy/path_aaa?timeout=10s\": http: RoundTripper implementation (*transport.userAgentRoundTripper) returned a nil *Response with a nil error",
-			ExpectedNumberOfRetries: 5,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.Name, func(t *testing.T) {
-			if tc.ExpectedNumberOfRetries == 0 {
-				// min number of calls is one
-				tc.ExpectedNumberOfRetries = 1
-			}
-			var gotNumberOfRetries int
-
 			c, err := NewClient(&Config{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
-				gotNumberOfRetries++
 				return tc.Mock(req)
 			})})
 			if err != nil {
@@ -71,7 +63,6 @@ func TestGet(t *testing.T) {
 			}
 
 			assert.Equal(t, tc.ExpectedResponse, string(resp))
-			assert.Equal(t, tc.ExpectedNumberOfRetries, gotNumberOfRetries)
 		})
 	}
 }

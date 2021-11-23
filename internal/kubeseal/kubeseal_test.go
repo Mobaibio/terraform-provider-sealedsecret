@@ -9,6 +9,7 @@ import (
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
+	"log"
 	"testing"
 )
 
@@ -64,10 +65,12 @@ func TestFetchPK(t *testing.T) {
 
 func TestSealSecret(t *testing.T) {
 	sm := k8s.SecretManifest{
-		Name:       "name_aa",
-		Namespace:  "ns_aa",
-		Type:       "type_aa",
-		StringData: map[string]string{"keyAA": "valueAA"},
+		Name:      "name_aa",
+		Namespace: "ns_aa",
+		Type:      "type_aa",
+		Data: map[string]interface{}{
+			"keyAA": "secret",
+		},
 	}
 
 	m := K8sClientMock{}
@@ -111,6 +114,7 @@ func TestSealSecret(t *testing.T) {
 	assert.Equal(t, "SealedSecret", actualSS.Kind)
 	assert.Equal(t, sm.Type, actualSS.Spec.Template.Type)
 	if len(actualSS.Spec.EncryptedData["keyAA"]) < 600 {
+		log.Println(actualSS)
 		t.Errorf("expected long encrypted string, got %s", actualSS.Spec.EncryptedData["keyAA"])
 	}
 }

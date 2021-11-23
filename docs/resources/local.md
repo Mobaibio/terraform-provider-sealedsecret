@@ -17,8 +17,8 @@ Creates a sealed secret and store it in yaml_content.
 
 ### Required
 
-- **name** (String) name of the secret, must be unique
-- **namespace** (String) namespace of the secret
+- **name** (String) Name of the secret, must be unique.
+- **namespace** (String) Namespace of the secret.
 
 ### Optional
 
@@ -28,6 +28,7 @@ Creates a sealed secret and store it in yaml_content.
 
 ### Read-Only
 
+- **public_key_hash** (String) The public key hashed to detect if the public key changes.
 - **yaml_content** (String) The produced sealed secret yaml file.
 
 
