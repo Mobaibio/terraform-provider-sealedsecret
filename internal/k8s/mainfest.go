@@ -28,10 +28,10 @@ data:
 type: {{ .Type }}`
 
 type SecretManifest struct {
-	Name       string
-	Namespace  string
-	Type       string
-	Data       map[string]interface{}
+	Name      string
+	Namespace string
+	Type      string
+	Data      map[string]interface{}
 }
 
 var ErrEmptyData = errors.New("secret manifest Data and StringData cannot be empty")

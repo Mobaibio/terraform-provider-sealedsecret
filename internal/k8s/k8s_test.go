@@ -17,10 +17,10 @@ func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 
 func TestGet(t *testing.T) {
 	tests := []struct {
-		Name                    string
-		Mock                    roundTripFunc
-		ExpectedResponse        string
-		ExpectedErr             string
+		Name             string
+		Mock             roundTripFunc
+		ExpectedResponse string
+		ExpectedErr      string
 	}{
 		{
 			Name: "happy day",
@@ -32,15 +32,14 @@ func TestGet(t *testing.T) {
 			}),
 			ExpectedResponse: "this_should_work",
 			ExpectedErr:      "",
-
 		},
 		{
 			Name: "retries logic is working",
 			Mock: roundTripFunc(func(req *http.Request) (*http.Response, error) {
 				return nil, nil
 			}),
-			ExpectedResponse:        "",
-			ExpectedErr:             "request to k8s cluster failed: Get \"http://localhost/api/v1/namespaces/controllerNs_aaa/services/http:controllerName_aaa:/proxy/path_aaa?timeout=10s\": http: RoundTripper implementation (*transport.userAgentRoundTripper) returned a nil *Response with a nil error",
+			ExpectedResponse: "",
+			ExpectedErr:      "request to k8s cluster failed: Get \"http://localhost/api/v1/namespaces/controllerNs_aaa/services/http:controllerName_aaa:/proxy/path_aaa?timeout=10s\": http: RoundTripper implementation (*transport.userAgentRoundTripper) returned a nil *Response with a nil error",
 		},
 	}
 

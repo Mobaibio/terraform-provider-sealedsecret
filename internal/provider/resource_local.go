@@ -19,10 +19,13 @@ import (
 func resourceLocal() *schema.Resource {
 	return &schema.Resource{
 		Description:   "Creates a sealed secret and store it in yaml_content.",
-		ReadContext:   dataSourceLocalRead,
-		UpdateContext: dataSourceLocalRead,
-		DeleteContext: dataSourceLocalRead,
-		CreateContext: dataSourceLocalRead,
+		ReadContext:   resourceLocalRead,
+		UpdateContext: resourceLocalRead,
+		CreateContext: resourceLocalCreate,
+		DeleteContext: func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+			d.SetId("")
+			return nil
+		},
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
@@ -61,11 +64,31 @@ func resourceLocal() *schema.Resource {
 	}
 }
 
-func dataSourceLocalRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+// resourceLocalRead creates only a hash of the public key.
+// If the hash changes then the resource is forced recreated.
+func resourceLocalRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	provider := meta.(*ProviderConfig)
-	filePath := d.Get("name").(string)
+	pk, err := fetchPublicKey(ctx, provider.PublicKeyResolver)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	d.SetId(d.Get("name").(string))
+	d.Set("data", d.Get("data").(map[string]interface{}))
 
-	logDebug("Creating sealed secret for path " + filePath)
+	newPkHash := hashPublicKey(pk)
+	if oldPkHash, ok := d.GetOk("public_key_hash"); ok && oldPkHash.(string) != newPkHash {
+		d.SetId("")
+	}
+	d.Set("public_key_hash", newPkHash)
+
+	return nil
+}
+
+func resourceLocalCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	provider := meta.(*ProviderConfig)
+	name := d.Get("name").(string)
+
+	logDebug("Creating sealed secret " + name)
 	k8sSecret, err := createK8sSecret(d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -79,8 +102,9 @@ func dataSourceLocalRead(ctx context.Context, d *schema.ResourceData, meta inter
 		return diag.FromErr(err)
 	}
 
-	logDebug("Successfully created sealed secret for path " + filePath)
-	d.SetId(filePath)
+	logDebug("Successfully created sealed secret " + name)
+
+	d.SetId(name)
 	d.Set("data", d.Get("data").(map[string]interface{}))
 	d.Set("yaml_content", string(sealedSecret))
 	d.Set("public_key_hash", hashPublicKey(pk))

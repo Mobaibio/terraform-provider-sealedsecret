@@ -10,13 +10,13 @@ import (
 	"testing"
 )
 
-func TestAccDataSourceLocal(t *testing.T) {
+func TestAccResourceLocal(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSealedSecretLocal,
+				Config: testAccResourceSealedSecretLocal,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckYamlContentProduced(t, "sealedsecret_local.test"),
 				),
@@ -25,7 +25,7 @@ func TestAccDataSourceLocal(t *testing.T) {
 	})
 }
 
-const testAccDataSourceSealedSecretLocal = `
+const testAccResourceSealedSecretLocal = `
 provider "sealedsecret"{
 	kubernetes {}
 }
