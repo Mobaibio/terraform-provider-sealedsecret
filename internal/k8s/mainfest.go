@@ -25,29 +25,18 @@ data:
   {{ $key }}: {{ $value -}}
   {{ end }}
 {{ end }}
-{{ if .StringData }}
-stringData:
-  {{- range $key, $value := .StringData }}
-  {{ $key }}: {{ $value -}}
-  {{ end }}
-{{ end }}
 type: {{ .Type }}`
 
 type SecretManifest struct {
-	Name       string
-	Namespace  string
-	Type       string
-	Data       map[string]interface{}
-	StringData map[string]string
+	Name      string
+	Namespace string
+	Type      string
+	Data      map[string]interface{}
 }
 
 var ErrEmptyData = errors.New("secret manifest Data and StringData cannot be empty")
 
 func CreateSecret(sm *SecretManifest) (v1.Secret, error) {
-	if len(sm.Data) == 0 && len(sm.StringData) == 0 {
-		return v1.Secret{}, ErrEmptyData
-	}
-
 	// if it is a .docker/config.json file then the data should already be base64 encoded
 	if sm.Type != "kubernetes.io/dockerconfigjson" {
 		sm.Data = b64EncodeMapValue(sm.Data)
