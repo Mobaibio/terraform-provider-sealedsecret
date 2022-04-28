@@ -56,7 +56,7 @@ func NewClient(cfg *Config) (*Client, error) {
 func (c *Client) Get(ctx context.Context, controllerName, controllerNamespace, path string) ([]byte, error) {
 	resp, err := c.RestClient.
 		Services(controllerNamespace).
-		ProxyGet("http", controllerName, "", path, nil).
+		ProxyGet("http", controllerName, "8080", path, nil).
 		Stream(ctx)
 
 	if err != nil {
